@@ -1,0 +1,133 @@
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
+
+def get_main_menu():
+    keyboard = [
+        [InlineKeyboardButton("Stake Mine 💎", callback_data='stake_mine')],
+        [InlineKeyboardButton("Premium Membership 🚀", callback_data='premium')],
+        [InlineKeyboardButton("Follow Us ✅", callback_data='follow')],
+        [InlineKeyboardButton("Proof ✉️", callback_data='proof')],
+        [InlineKeyboardButton("Customer Support 💬", callback_data='support')]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "👋 Welcome! Please choose an option below:",
+        reply_markup=get_main_menu()
+    )
+
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    data = query.data
+
+    if data == "main_menu":
+        await query.edit_message_text("👋 Welcome back to the main menu:", reply_markup=get_main_menu())
+        return
+
+    if data == "stake_mine":
+        with open("stake_mine.jpg.jpg", "rb") as photo:
+            await query.message.reply_photo(photo=photo, caption=(
+                "Set the number of mines on your stake and select the mines here :\n\nChoose mines"
+            ))
+
+        keyboard = [[InlineKeyboardButton(str(i), callback_data=f"mine_{i}")] for i in range(1, 19)]
+        keyboard.append([InlineKeyboardButton("❌ Cancel", callback_data="main_menu")])
+
+        await query.message.reply_text("Select mine count:", reply_markup=InlineKeyboardMarkup(keyboard))
+        return
+
+    if data.startswith("mine_"):
+        with open("server_seed.jpg", "rb") as photo:
+            await query.message.reply_photo(photo=photo, caption=(
+                "🔐 *Server seed*\n\nCopy your [ Active server seed ] and paste here :"
+            ), parse_mode="Markdown")
+        keyboard = [[InlineKeyboardButton("🔙 Main Menu", callback_data="main_menu")]]
+        await query.message.reply_text("Waiting for your input...", reply_markup=InlineKeyboardMarkup(keyboard))
+        return
+
+    if data == "premium":
+        premium_text = (
+            "PLAN POWER ⚡\n"
+            "- You will get 10 bets per day.\n"
+            "- The duration of the plan is 7 days.\n"
+            "- You can select 1 to 4 mines.\n"
+            "- Plan price is ₹249 INR.\n\n"
+
+            "PLAN APEX 🌟\n"
+            "- You will get 20 bets per day.\n"
+            "- The duration of the plan is 19 days.\n"
+            "- You can select 4 to 8 mines.\n"
+            "- Plan price is ₹499 INR.\n\n"
+
+            "PLAN CREST 🔥\n"
+            "- You will get 30 bets per day.\n"
+            "- The duration of the plan is 30 days.\n"
+            "- You can select 8 to 18 mines.\n"
+            "- Plan price is ₹699 INR.\n\n"
+
+            "Buy the plan from - @GhostyGuys"
+        )
+        await query.edit_message_text(
+            text=premium_text,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("PURCHASE 💎", url="https://t.me/GhostyGuys")],
+                [InlineKeyboardButton("🔙 Back to Menu", callback_data="main_menu")]
+            ])
+        )
+        return
+
+    if data == "proof":
+        await query.edit_message_text(
+            text=(
+                "Hey user,\n\nNow you can get the reviews and proofs of our bot.\n"
+                "Join the channel to connect with us 🤖\n\n"
+                "Link : https://t.me/Ghostystake"
+            ),
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("Join Now 💎", url="https://t.me/Ghostystake")],
+                [InlineKeyboardButton("🔙 Back to Menu", callback_data="main_menu")]
+            ])
+        )
+        return
+
+    if data == "support":
+        await query.edit_message_text(
+            text=(
+                "Hey user,\n\nFor support, please contact our team if any issue occurs:\n"
+                "@StakeCustomer_support"
+            ),
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔙 Back to Menu", callback_data="main_menu")]
+            ])
+        )
+        return
+
+
+async def handle_user_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    with open("premierm.jpg", "rb") as photo:
+        await update.message.reply_photo(photo=photo)
+
+    await update.message.reply_text(
+        "🛑 *You have not purchased the premium membership yet!*\n\nPurchase the plan to use the bot.",
+        parse_mode="Markdown",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("💎 Purchase", url="https://t.me/GhostyGuys")],
+            [InlineKeyboardButton("🔙 Back to Menu", callback_data="main_menu")]
+        ])
+    )
+
+def main():
+    TOKEN = "7505302840:AAGMZ2xnN_R_hkAimhwICgkThJLNo40v8FM"
+    app = ApplicationBuilder().token(TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_handler))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_user_input))
+
+    print("🤖 Bot is running...")
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
